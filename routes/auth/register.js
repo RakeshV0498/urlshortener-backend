@@ -30,13 +30,16 @@ registerRouter.post("/", async (req, res) => {
         password: hash,
       });
 
+      // Create a verification token
+      const verificationToken = Math.random().toString(36).substring(7);
+
       const mailOptions = {
         from: "rockr1204@gmail.com",
         to: userObj.email,
         subject: "Reset Password",
         html: `<p>Hello,</p>
               <p>Thank you for registering with us. Please click on the following link to verify your email address:</p>
-              <p><a href=${feURL}verify-email/>Verify Email</a></p>
+              <p><a href=${feURL}verify-email/${verificationToken}>Verify Email</a></p>
               <p>If you did not register for this account, please ignore this email.</p>
               <p>Thank you.</p>
               `,
@@ -54,6 +57,28 @@ registerRouter.post("/", async (req, res) => {
         msg: "User registered sucessfully. Please verify your email to continue",
       });
     });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .send({ msg: "Something went wrong, Please try again later" });
+  }
+});
+
+registerRouter.get("/verify-email/:verificationToken", async (req, res) => {
+  const { verificationToken } = req.params;
+
+  try {
+    const userObj = await userModel.findOne({ verifyToken: verificationToken });
+
+    if (!userObj) {
+      return res.status(404).send({ msg: "user not found", code: -1 });
+    }
+
+    userObj.active = true;
+    userObj.verifyToken = null;
+    await user.save();
+    return res.send({ msg: "Email Verified Successfully" });
   } catch (error) {
     console.log(error);
     return res
