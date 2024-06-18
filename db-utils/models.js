@@ -39,6 +39,13 @@ const userSchema = new Schema({
   },
 });
 
-const userModel = new model("user", userSchema, "users");
+const urlSchema = new Schema({
+  longURL: { type: String, required: true },
+  shortURL: { type: String, required: true, unique: true },
+  createdAt: { type: Date, default: Date.now },
+});
 
-export { userModel };
+const userModel = new model("user", userSchema, "users");
+const urlModel = new model("url", urlSchema, urls);
+
+export { userModel, urlModel };
