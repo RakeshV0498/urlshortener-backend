@@ -40,12 +40,13 @@ const userSchema = new Schema({
 });
 
 const urlSchema = new Schema({
+  id: { type: String, required: true },
   longURL: { type: String, required: true },
   shortURL: { type: String, required: true, unique: true },
   createdAt: { type: Date, default: Date.now },
 });
 
 const userModel = new model("user", userSchema, "users");
-const urlModel = new model("url", urlSchema, urls);
+const urlModel = new model("url", urlSchema, "urls");
 
 export { userModel, urlModel };
