@@ -1,5 +1,5 @@
 import express from "express";
-import { urlModel } from "../db-utils/models.js";
+import { urlModel, userModel } from "../db-utils/models.js";
 import { nanoid } from "nanoid";
 import jwt from "jsonwebtoken";
 
@@ -17,6 +17,7 @@ const authenticateUser = (req, res, next) => {
   try {
     // Verify the token
     const decoded = jwt.verify(token, process.env.JWT_SECRETKEY || "");
+    req.userId = decoded.id;
     // Attach user object to request
     next(); // Call next middleware
   } catch (error) {
@@ -28,7 +29,7 @@ const authenticateUser = (req, res, next) => {
 // Add this to your urlRouter in the backend
 urlRouter.get("/", authenticateUser, async (req, res) => {
   try {
-    const urls = await urlModel.find();
+    const urls = await urlModel.find({ createdBy: req.userId });
     res.json(urls);
   } catch (error) {
     console.error(error);
@@ -38,6 +39,7 @@ urlRouter.get("/", authenticateUser, async (req, res) => {
 
 urlRouter.post("/shorten", authenticateUser, async (req, res) => {
   const { longURL } = req.body;
+  const userId = req.userId;
 
   const shortURL = nanoid(7);
   const id = nanoid(10);
@@ -47,7 +49,12 @@ urlRouter.post("/shorten", authenticateUser, async (req, res) => {
   }
 
   try {
-    const url = await urlModel.create({ id, longURL, shortURL });
+    const url = await urlModel.create({
+      id,
+      longURL,
+      shortURL,
+      createdBy: userId,
+    });
     await url.save();
     return res.send({ shortURL, id, msg: "URL shortned" });
   } catch (error) {
@@ -76,7 +83,7 @@ urlRouter.get("/:shortURL", async (req, res) => {
 // Dashboard route to get URL counts
 urlRouter.get("/dashboard", authenticateUser, async (req, res) => {
   try {
-    const user = req.user; // Assuming user object is available in req after authentication
+    const user = await userModel.findOne({ id: req.userId }); // Assuming user object is available in req after authentication
     const currentDate = new Date();
     const startDateOfMonth = new Date(
       currentDate.getFullYear(),
@@ -85,11 +92,11 @@ urlRouter.get("/dashboard", authenticateUser, async (req, res) => {
     );
 
     const urlsCreatedToday = await urlModel.countDocuments({
-      createdBy: user.email,
+      createdBy: user.id,
       createdAt: { $gte: new Date().setHours(0, 0, 0, 0) },
     });
     const urlsCreatedThisMonth = await urlModel.countDocuments({
-      createdBy: user.email,
+      createdBy: user.id,
       createdAt: { $gte: startDateOfMonth },
     });
 

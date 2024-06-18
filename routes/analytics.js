@@ -1,12 +1,16 @@
-// In your urlRouter.js or a separate analyticsRouter.js
+// In your analyticsRouter.js or a separate file
 import express from "express";
-import { urlModel } from "../db-utils/models.js";
+import { urlModel, userModel } from "../db-utils/models.js";
 
 const analyticsRouter = express.Router();
 
 analyticsRouter.get("/daily-count", async (req, res) => {
   try {
+    const user = await userModel.findOne({ id: req.userId });
     const dailyCounts = await urlModel.aggregate([
+      {
+        $match: { createdBy: user.id }, // Filter by createdBy field
+      },
       {
         $group: {
           _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
@@ -27,7 +31,11 @@ analyticsRouter.get("/daily-count", async (req, res) => {
 
 analyticsRouter.get("/monthly-count", async (req, res) => {
   try {
+    const user = await userModel.findOne({ id: req.userId });
     const monthlyCounts = await urlModel.aggregate([
+      {
+        $match: { createdBy: user.id }, // Filter by createdBy field
+      },
       {
         $group: {
           _id: { $dateToString: { format: "%Y-%m", date: "$createdAt" } },

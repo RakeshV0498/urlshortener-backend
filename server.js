@@ -34,6 +34,7 @@ const authenticateUser = (req, res, next) => {
   try {
     // Verify the token
     const decoded = jwt.verify(token, process.env.JWT_SECRETKEY || "");
+    req.userId = decoded.id;
     // Attach user object to request
     next(); // Call next middleware
   } catch (error) {
