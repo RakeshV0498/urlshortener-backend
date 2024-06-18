@@ -14,6 +14,14 @@ loginRouter.post("/", async (req, res) => {
   const userObj = await userModel.findOne({ email: userData.email });
 
   if (userObj) {
+    if (!userObj.active) {
+      return res
+        .status(404)
+        .send({
+          msg: "Please verify your email to activate your account. Email alreay sent!",
+        });
+    }
+
     const password = userData.password;
 
     bcrypt.compare(password, userObj.password, async (err, result) => {
