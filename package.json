@@ -1,0 +1,27 @@
+{
+  "name": "miniurl_backend",
+  "version": "1.0.0",
+  "description": "backend for url shortener",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "server": "node --watch server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RakeshV0498/urlshortener-backend.git"
+  },
+  "keywords": [
+    "express",
+    "mongodb",
+    "mongoose",
+    "jwt"
+  ],
+  "author": "Rakesh",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/RakeshV0498/urlshortener-backend/issues"
+  },
+  "homepage": "https://github.com/RakeshV0498/urlshortener-backend#readme"
+}
