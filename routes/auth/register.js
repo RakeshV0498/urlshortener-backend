@@ -1,15 +1,19 @@
 import express from "express";
 import bcrypt from "bcrypt";
+import dotenv from "dotenv";
 
 import { userModel } from "../../db-utils/models.js";
+import { transporter } from "../../mail-utils/mail-util.js";
 
 const registerRouter = express.Router();
 
+dotenv.config();
+
 registerRouter.post("/", async (req, res) => {
-  const userdata = req.body;
+  const userData = req.body;
 
   try {
-    const userObj = await userModel.findOne({ email: userdata.email });
+    const userObj = await userModel.findOne({ email: userData.email });
 
     if (userObj) {
       return res
@@ -17,26 +21,30 @@ registerRouter.post("/", async (req, res) => {
         .send({ msg: "User already registered, Please login!", code: -1 });
     }
 
-    bcrypt.hash(userdata.password, 10, async (err, hash) => {
+    bcrypt.hash(userData.password, 10, async (err, hash) => {
       if (err) {
         return res.status(500).send({
           msg: "Something went wrong, please try again later",
           code: -2,
         });
       }
-      await userModel.create({
-        ...userdata,
-        id: Date.now().toString(),
-        password: hash,
-      });
 
       // Create a verification token
       const verificationToken = Math.random().toString(36).substring(7);
 
+      await userModel.create({
+        ...userData,
+        id: Date.now().toString(),
+        password: hash,
+        verifyToken: verificationToken,
+      });
+
+      const feURL = process.env.FE_URL || "";
+
       const mailOptions = {
         from: "rockr1204@gmail.com",
-        to: userObj.email,
-        subject: "Reset Password",
+        to: userData.email,
+        subject: "Account Activation",
         html: `<p>Hello,</p>
               <p>Thank you for registering with us. Please click on the following link to verify your email address:</p>
               <p><a href=${feURL}verify-email/${verificationToken}>Verify Email</a></p>
@@ -71,14 +79,14 @@ registerRouter.get("/verify-email/:verificationToken", async (req, res) => {
   try {
     const userObj = await userModel.findOne({ verifyToken: verificationToken });
 
-    if (!userObj) {
-      return res.status(404).send({ msg: "user not found", code: -1 });
+    if (userObj) {
+      userObj.active = true;
+      userObj.verifyToken = "";
+      await userObj.save();
+      return res.send({ msg: "Email Verified Successfully" });
+    } else {
+      return res.status(404).send({ msg: "user not found" });
     }
-
-    userObj.active = true;
-    userObj.verifyToken = null;
-    await user.save();
-    return res.send({ msg: "Email Verified Successfully" });
   } catch (error) {
     console.log(error);
     return res

@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const transpoter = nodemailer.createTransport({
+const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
     user: "rockr1204@gmail.com",
@@ -11,4 +11,4 @@ const transpoter = nodemailer.createTransport({
   },
 });
 
-export { transpoter };
+export { transporter };
