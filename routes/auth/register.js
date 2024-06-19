@@ -55,7 +55,7 @@ registerRouter.post("/", async (req, res) => {
 
       transporter.sendMail(mailOptions, (error, info) => {
         if (error) {
-          console.log(error);
+          console.error(error);
           return res.status(500).send({ msg: "Error sending email" });
         }
         res.status(200).send({ msg: "Email sent successfully" });
@@ -66,7 +66,7 @@ registerRouter.post("/", async (req, res) => {
       });
     });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return res
       .status(500)
       .send({ msg: "Something went wrong, Please try again later" });
@@ -88,7 +88,7 @@ registerRouter.get("/verify-email/:verificationToken", async (req, res) => {
       return res.status(404).send({ msg: "user not found" });
     }
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return res
       .status(500)
       .send({ msg: "Something went wrong, Please try again later" });

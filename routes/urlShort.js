@@ -30,7 +30,7 @@ const authenticateUser = (req, res, next) => {
 urlRouter.get("/", authenticateUser, async (req, res) => {
   try {
     const urls = await urlModel.find({ createdBy: req.userId });
-    res.json(urls);
+    res.send(urls);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -68,7 +68,7 @@ urlRouter.get("/:shortURL", async (req, res) => {
 
   try {
     const url = await urlModel.findOne({ shortURL });
-    console.log(url);
+
     if (url) {
       return res.redirect(url.longURL);
     } else {
